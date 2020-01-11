@@ -1,2 +1,2 @@
 # SmallWorld
-Small world game
+Small world is Adventure Survival RPG.
