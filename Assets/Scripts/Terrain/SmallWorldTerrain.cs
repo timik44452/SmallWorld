@@ -60,32 +60,12 @@ public class SmallWorldTerrain : MonoBehaviour
 
     private void InitializeNormals()
     {
-        for (int i = 0; i < normals.Length; i += 20)
+        for (int i = 0; i < normals.Length; i += 4)
         {
             normals[i + 0] =
             normals[i + 1] =
             normals[i + 2] =
             normals[i + 3] = Vector3.up;
-
-            normals[i + 4] =
-            normals[i + 5] =
-            normals[i + 6] =
-            normals[i + 7] = Vector3.right;
-
-            normals[i + 8] =
-            normals[i + 9] =
-            normals[i + 10] =
-            normals[i + 11] = Vector3.left;
-
-            normals[i + 12] =
-            normals[i + 13] =
-            normals[i + 14] =
-            normals[i + 15] = Vector3.forward;
-
-            normals[i + 16] =
-            normals[i + 17] =
-            normals[i + 18] =
-            normals[i + 19] = Vector3.back;
         }
     }
 
@@ -95,7 +75,8 @@ public class SmallWorldTerrain : MonoBehaviour
 
         if (material != null)
         {
-            material.mainTexture = unwrap;
+            material.SetTexture("_BaseMap", unwrap);
+            //material.mainTexture = unwrap;
         }
 
         AddSubTexture(0, 0, terrainSettings.grassTexture, unwrap);
@@ -124,9 +105,11 @@ public class SmallWorldTerrain : MonoBehaviour
 
                 child.localPosition = new Vector3(child.localPosition.x, Height - 1, child.localPosition.z);
 
-                for (float y = 0; y < Height; y++)
+                //for (float y = 0; y < Height; y++)
+                float y = Height;
+
                 {
-                    int b_type = (int)(2 - y * 0.5F);
+                    int b_type = (int)(3 - Height * 0.5F);
 
                     Vector4 uv = blockUVs[2];
 
@@ -262,7 +245,7 @@ public class SmallWorldTerrain : MonoBehaviour
         if (mesh == null)
         {
             mesh = new Mesh();
-        }                       
+        }
 
         mesh.Clear();
 
@@ -286,8 +269,21 @@ public class SmallWorldTerrain : MonoBehaviour
 
         var buffer = blockUVs;
 
+        Vector4 uv = new Vector4();
+
+        //TODO: Need fix
+        uv.x = (x + texture.width / 2) / uv_width;
+        uv.y = (y + texture.height / 2) / uv_height;
+        uv.z = 1 / uv_width;
+        uv.w = 1 / uv_height;
+
+        //uv.x = x / uv_width;
+        //uv.y = y / uv_height;
+        //uv.z = texture.width / uv_width;
+        //uv.w = texture.height / uv_height;
+
         blockUVs = new Vector4[buffer.Length + 1];
-        blockUVs[buffer.Length] = new Vector4((x + 5) / uv_width, (y + 5) / uv_height, (texture.width - 5) / uv_width, (texture.height - 5) / uv_height);
+        blockUVs[buffer.Length] = uv;
 
         buffer.CopyTo(blockUVs, 0);
     }

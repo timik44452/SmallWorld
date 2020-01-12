@@ -11,6 +11,7 @@ namespace Game.Terrain.Service
         private int memory;
         private int region_size = 1024;
 
+        private TerrainRegion lastUsedTerrain;
         private List<TerrainRegion> loadedRegions;
 
         public LoadedTerrainRegion(int memory)
@@ -30,7 +31,7 @@ namespace Game.Terrain.Service
             int region_local_x = (int)((region_x == 0) ? x : x % region_x);
             int region_local_z = (int)((region_z == 0) ? z : z % region_z);
 
-            if(region_local_x < 0)
+            if (region_local_x < 0)
             {
                 region_local_x = region_size + region_local_x;
                 region_x--;
@@ -59,12 +60,21 @@ namespace Game.Terrain.Service
 
         private TerrainRegion LoadIfNotLoaded(int x, int z)
         {
-            string path = map_path + $"//region{x}_{z}.region";
+            TerrainRegion terrainRegion = null;
 
-            TerrainRegion terrainRegion = loadedRegions.Find(region => region.X == x && region.Z == z);
+            if (lastUsedTerrain != null && lastUsedTerrain.X == x && lastUsedTerrain.Z == z)
+            {
+                terrainRegion = lastUsedTerrain;
+            }
+            else
+            {
+                terrainRegion = loadedRegions.Find(region => region.X == x && region.Z == z);
+            }
 
             if (terrainRegion == null)
             {
+                string path = map_path + $"//region{x}_{z}.region";
+
                 if (File.Exists(Path.Combine(path)))
                 {
                     terrainRegion = new TerrainRegion(path);
@@ -81,6 +91,8 @@ namespace Game.Terrain.Service
                 }
             }
 
+            lastUsedTerrain = terrainRegion;
+
             return terrainRegion;
         }
 
@@ -92,8 +104,8 @@ namespace Game.Terrain.Service
             {
                 for (int local_z = 0; local_z < region_size; local_z++)
                 {
-                    float perlin_x = Mathf.Round(x + local_x) * 0.08F;
-                    float perlin_z = Mathf.Round(z + local_z) * 0.08F;
+                    float perlin_x = Mathf.Round(x + local_x) * 0.065F;
+                    float perlin_z = Mathf.Round(z + local_z) * 0.065F;
 
                     float height = Mathf.PerlinNoise(perlin_x, perlin_z) * 8.0F;
 
