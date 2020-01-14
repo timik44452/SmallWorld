@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class SmallWorldTerrain : MonoBehaviour
 {
-    // bytes
-    private const int terrain_memory_count = 9 * 1024;
     private const int terrain_cubes_count = 50 * 50 * 50;
 
     public Material material;
@@ -13,6 +11,7 @@ public class SmallWorldTerrain : MonoBehaviour
 
     #region Loaded data
     private LoadedTerrainRegion loadedTerrain;
+    private LoadedWorldObjects loadedWorldObjects;
     #endregion
 
     #region UV data
@@ -32,6 +31,8 @@ public class SmallWorldTerrain : MonoBehaviour
 
         float width = region.Width * 0.5F;
         float length = region.Length * 0.5F;
+
+        loadedWorldObjects.UpdateRegion(region);
 
         foreach (Region sub_region in region.GetSubRegions(width, region.Height, length))
         {
@@ -55,7 +56,8 @@ public class SmallWorldTerrain : MonoBehaviour
 
     private void InitializeLoader()
     {
-        loadedTerrain = new LoadedTerrainRegion(terrain_memory_count);
+        loadedTerrain = new LoadedTerrainRegion();
+        loadedWorldObjects = new LoadedWorldObjects();
     }
 
     private void InitializeNormals()
@@ -100,141 +102,137 @@ public class SmallWorldTerrain : MonoBehaviour
             for (int z = 0; z < region.Length; z++)
             {
                 float Height = loadedTerrain.GetHeight(region.X + x, region.Z + z);
+                float y = Height / 2.0F;
 
                 Transform child = chunkGameObject.transform.GetChild(childIndex);
 
-                child.localPosition = new Vector3(child.localPosition.x, Height - 1, child.localPosition.z);
+                child.localPosition = new Vector3(child.localPosition.x, y, child.localPosition.z);
 
-                //for (float y = 0; y < Height; y++)
-                float y = Height;
+                int b_type = (int)(3 - Height * 0.5F);
 
+                Vector4 uv = blockUVs[2];
+
+                if (b_type >= 0 && b_type < blockUVs.Length)
                 {
-                    int b_type = (int)(3 - Height * 0.5F);
-
-                    Vector4 uv = blockUVs[2];
-
-                    if (b_type >= 0 && b_type < blockUVs.Length)
-                    {
-                        uv = blockUVs[b_type];
-                    }
-
-                    #region UV
-                    uvs[vertices_count] =
-                    uvs[vertices_count + 4] =
-                    uvs[vertices_count + 8] =
-                    uvs[vertices_count + 12] =
-                    uvs[vertices_count + 16] = new Vector2(uv.x, uv.y);
-
-                    uvs[vertices_count + 1] =
-                    uvs[vertices_count + 5] =
-                    uvs[vertices_count + 9] =
-                    uvs[vertices_count + 13] =
-                    uvs[vertices_count + 17] = new Vector2(uv.x + uv.z, uv.y);
-
-                    uvs[vertices_count + 2] =
-                    uvs[vertices_count + 6] =
-                    uvs[vertices_count + 10] =
-                    uvs[vertices_count + 14] =
-                    uvs[vertices_count + 18] = new Vector2(uv.x + uv.z, uv.y + uv.w);
-
-                    uvs[vertices_count + 3] =
-                    uvs[vertices_count + 7] =
-                    uvs[vertices_count + 11] =
-                    uvs[vertices_count + 15] =
-                    uvs[vertices_count + 19] = new Vector2(uv.x, uv.y + uv.w);
-                    #endregion
-
-                    #region Verts
-                    Vector3 v0 = new Vector3(x - 0.5F, y + 0.5F, z - 0.5F);
-                    Vector3 v1 = new Vector3(x - 0.5F, y + 0.5F, z + 0.5F);
-                    Vector3 v2 = new Vector3(x + 0.5F, y + 0.5F, z + 0.5F);
-                    Vector3 v3 = new Vector3(x + 0.5F, y + 0.5F, z - 0.5F);
-                    Vector3 v4 = new Vector3(x + 0.5F, y - 0.5F, z + 0.5F);
-                    Vector3 v5 = new Vector3(x + 0.5F, y - 0.5F, z - 0.5F);
-                    Vector3 v6 = new Vector3(x - 0.5F, y - 0.5F, z + 0.5F);
-                    Vector3 v7 = new Vector3(x - 0.5F, y - 0.5F, z - 0.5F);
-
-                    vertices[vertices_count] = v0;
-                    vertices[vertices_count + 1] = v1;
-                    vertices[vertices_count + 2] = v2;
-                    vertices[vertices_count + 3] = v3;
-
-                    vertices[vertices_count + 4] = v4;
-                    vertices[vertices_count + 5] = v2;
-                    vertices[vertices_count + 6] = v3;
-                    vertices[vertices_count + 7] = v5;
-
-                    vertices[vertices_count + 8] = v6;
-                    vertices[vertices_count + 9] = v1;
-                    vertices[vertices_count + 10] = v0;
-                    vertices[vertices_count + 11] = v7;
-
-                    vertices[vertices_count + 12] = v6;
-                    vertices[vertices_count + 13] = v1;
-                    vertices[vertices_count + 14] = v2;
-                    vertices[vertices_count + 15] = v4;
-
-                    vertices[vertices_count + 16] = v7;
-                    vertices[vertices_count + 17] = v0;
-                    vertices[vertices_count + 18] = v3;
-                    vertices[vertices_count + 19] = v5;
-                    #endregion
-
-                    #region Tris
-                    #region up
-                    triangles[triangles_count + 0] = vertices_count;
-                    triangles[triangles_count + 1] = vertices_count + 1;
-                    triangles[triangles_count + 2] = vertices_count + 2;
-
-                    triangles[triangles_count + 3] = vertices_count;
-                    triangles[triangles_count + 4] = vertices_count + 2;
-                    triangles[triangles_count + 5] = vertices_count + 3;
-                    #endregion
-
-                    #region left
-                    triangles[triangles_count + 6] = vertices_count + 8;
-                    triangles[triangles_count + 7] = vertices_count + 9;
-                    triangles[triangles_count + 8] = vertices_count + 10;
-
-                    triangles[triangles_count + 9] = vertices_count + 8;
-                    triangles[triangles_count + 10] = vertices_count + 10;
-                    triangles[triangles_count + 11] = vertices_count + 11;
-                    #endregion
-
-                    #region front
-                    triangles[triangles_count + 12] = vertices_count + 15;
-                    triangles[triangles_count + 13] = vertices_count + 14;
-                    triangles[triangles_count + 14] = vertices_count + 13;
-
-                    triangles[triangles_count + 15] = vertices_count + 15;
-                    triangles[triangles_count + 16] = vertices_count + 13;
-                    triangles[triangles_count + 17] = vertices_count + 12;
-                    #endregion
-
-                    #region right
-                    triangles[triangles_count + 18] = vertices_count + 7;
-                    triangles[triangles_count + 19] = vertices_count + 6;
-                    triangles[triangles_count + 20] = vertices_count + 5;
-
-                    triangles[triangles_count + 21] = vertices_count + 7;
-                    triangles[triangles_count + 22] = vertices_count + 5;
-                    triangles[triangles_count + 23] = vertices_count + 4;
-                    #endregion
-
-                    #region back
-                    triangles[triangles_count + 24] = vertices_count + 16;
-                    triangles[triangles_count + 25] = vertices_count + 17;
-                    triangles[triangles_count + 26] = vertices_count + 18;
-
-                    triangles[triangles_count + 27] = vertices_count + 16;
-                    triangles[triangles_count + 28] = vertices_count + 18;
-                    triangles[triangles_count + 29] = vertices_count + 19;
-                    #endregion
-                    #endregion
-
-                    vertices_count += 20;
-                    triangles_count += 30;
+                    uv = blockUVs[b_type];
                 }
+
+                #region UV
+                uvs[vertices_count] =
+                uvs[vertices_count + 4] =
+                uvs[vertices_count + 8] =
+                uvs[vertices_count + 12] =
+                uvs[vertices_count + 16] = new Vector2(uv.x, uv.y);
+
+                uvs[vertices_count + 1] =
+                uvs[vertices_count + 5] =
+                uvs[vertices_count + 9] =
+                uvs[vertices_count + 13] =
+                uvs[vertices_count + 17] = new Vector2(uv.x + uv.z, uv.y);
+
+                uvs[vertices_count + 2] =
+                uvs[vertices_count + 6] =
+                uvs[vertices_count + 10] =
+                uvs[vertices_count + 14] =
+                uvs[vertices_count + 18] = new Vector2(uv.x + uv.z, uv.y + uv.w);
+
+                uvs[vertices_count + 3] =
+                uvs[vertices_count + 7] =
+                uvs[vertices_count + 11] =
+                uvs[vertices_count + 15] =
+                uvs[vertices_count + 19] = new Vector2(uv.x, uv.y + uv.w);
+                #endregion
+
+                #region Verts
+                Vector3 v0 = new Vector3(x - 0.5F, y + 0.5F, z - 0.5F);
+                Vector3 v1 = new Vector3(x - 0.5F, y + 0.5F, z + 0.5F);
+                Vector3 v2 = new Vector3(x + 0.5F, y + 0.5F, z + 0.5F);
+                Vector3 v3 = new Vector3(x + 0.5F, y + 0.5F, z - 0.5F);
+                Vector3 v4 = new Vector3(x + 0.5F, y - 0.5F, z + 0.5F);
+                Vector3 v5 = new Vector3(x + 0.5F, y - 0.5F, z - 0.5F);
+                Vector3 v6 = new Vector3(x - 0.5F, y - 0.5F, z + 0.5F);
+                Vector3 v7 = new Vector3(x - 0.5F, y - 0.5F, z - 0.5F);
+
+                vertices[vertices_count] = v0;
+                vertices[vertices_count + 1] = v1;
+                vertices[vertices_count + 2] = v2;
+                vertices[vertices_count + 3] = v3;
+
+                vertices[vertices_count + 4] = v4;
+                vertices[vertices_count + 5] = v2;
+                vertices[vertices_count + 6] = v3;
+                vertices[vertices_count + 7] = v5;
+
+                vertices[vertices_count + 8] = v6;
+                vertices[vertices_count + 9] = v1;
+                vertices[vertices_count + 10] = v0;
+                vertices[vertices_count + 11] = v7;
+
+                vertices[vertices_count + 12] = v6;
+                vertices[vertices_count + 13] = v1;
+                vertices[vertices_count + 14] = v2;
+                vertices[vertices_count + 15] = v4;
+
+                vertices[vertices_count + 16] = v7;
+                vertices[vertices_count + 17] = v0;
+                vertices[vertices_count + 18] = v3;
+                vertices[vertices_count + 19] = v5;
+                #endregion
+
+                #region Tris
+                #region up
+                triangles[triangles_count + 0] = vertices_count;
+                triangles[triangles_count + 1] = vertices_count + 1;
+                triangles[triangles_count + 2] = vertices_count + 2;
+
+                triangles[triangles_count + 3] = vertices_count;
+                triangles[triangles_count + 4] = vertices_count + 2;
+                triangles[triangles_count + 5] = vertices_count + 3;
+                #endregion
+
+                #region left
+                triangles[triangles_count + 6] = vertices_count + 8;
+                triangles[triangles_count + 7] = vertices_count + 9;
+                triangles[triangles_count + 8] = vertices_count + 10;
+
+                triangles[triangles_count + 9] = vertices_count + 8;
+                triangles[triangles_count + 10] = vertices_count + 10;
+                triangles[triangles_count + 11] = vertices_count + 11;
+                #endregion
+
+                #region front
+                triangles[triangles_count + 12] = vertices_count + 15;
+                triangles[triangles_count + 13] = vertices_count + 14;
+                triangles[triangles_count + 14] = vertices_count + 13;
+
+                triangles[triangles_count + 15] = vertices_count + 15;
+                triangles[triangles_count + 16] = vertices_count + 13;
+                triangles[triangles_count + 17] = vertices_count + 12;
+                #endregion
+
+                #region right
+                triangles[triangles_count + 18] = vertices_count + 7;
+                triangles[triangles_count + 19] = vertices_count + 6;
+                triangles[triangles_count + 20] = vertices_count + 5;
+
+                triangles[triangles_count + 21] = vertices_count + 7;
+                triangles[triangles_count + 22] = vertices_count + 5;
+                triangles[triangles_count + 23] = vertices_count + 4;
+                #endregion
+
+                #region back
+                triangles[triangles_count + 24] = vertices_count + 16;
+                triangles[triangles_count + 25] = vertices_count + 17;
+                triangles[triangles_count + 26] = vertices_count + 18;
+
+                triangles[triangles_count + 27] = vertices_count + 16;
+                triangles[triangles_count + 28] = vertices_count + 18;
+                triangles[triangles_count + 29] = vertices_count + 19;
+                #endregion
+                #endregion
+
+                vertices_count += 20;
+                triangles_count += 30;
 
                 childIndex++;
             }

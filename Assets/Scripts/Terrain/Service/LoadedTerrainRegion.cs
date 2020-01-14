@@ -8,16 +8,13 @@ namespace Game.Terrain.Service
     {
         private const string map_path = @"Map";
 
-        private int memory;
         private int region_size = 1024;
 
         private TerrainRegion lastUsedTerrain;
         private List<TerrainRegion> loadedRegions;
 
-        public LoadedTerrainRegion(int memory)
+        public LoadedTerrainRegion()
         {
-            this.memory = memory;
-
             loadedRegions = new List<TerrainRegion>();
 
             CreateDirectionIfNotCreated();
