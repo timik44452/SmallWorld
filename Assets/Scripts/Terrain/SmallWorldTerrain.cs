@@ -81,9 +81,9 @@ public class SmallWorldTerrain : MonoBehaviour
             //material.mainTexture = unwrap;
         }
 
-        AddSubTexture(0, 0, terrainSettings.grassTexture, unwrap);
+        AddSubTexture(0, 0, terrainSettings.rockTexture, unwrap);
         AddSubTexture(64, 0, terrainSettings.groundTexture, unwrap);
-        AddSubTexture(64, 64, terrainSettings.rockTexture, unwrap);
+        AddSubTexture(64, 64, terrainSettings.grassTexture, unwrap);
 
         unwrap.filterMode = FilterMode.Point;
 
@@ -101,20 +101,26 @@ public class SmallWorldTerrain : MonoBehaviour
         {
             for (int z = 0; z < region.Length; z++)
             {
-                float Height = loadedTerrain.GetHeight(region.X + x, region.Z + z);
-                float y = Height / 2.0F;
-
                 Transform child = chunkGameObject.transform.GetChild(childIndex);
 
-                child.localPosition = new Vector3(child.localPosition.x, y, child.localPosition.z);
+                child.localPosition = new Vector3(child.localPosition.x, 0, child.localPosition.z);
 
-                int b_type = (int)(3 - Height * 0.5F);
+                int b_type = (int)(6 - loadedTerrain.GetHeight(region.X + x, region.Z + z) * 2);
 
-                Vector4 uv = blockUVs[2];
+                Vector4 uv = blockUVs[1];
 
-                if (b_type >= 0 && b_type < blockUVs.Length)
+                Vector3 v0 = new Vector3(x, loadedTerrain.GetHeight(region.X + x, region.Z + z) / 2, z);
+                Vector3 v1 = new Vector3(x + 1, loadedTerrain.GetHeight(region.X + x + 1, region.Z + z) / 2, z);
+                Vector3 v2 = new Vector3(x + 1, loadedTerrain.GetHeight(region.X + x + 1, region.Z + z + 1) / 2, z + 1);
+                Vector3 v3 = new Vector3(x, loadedTerrain.GetHeight(region.X + x, region.Z + z + 1) / 2, z + 1);
+
+                if (b_type < 0)
                 {
-                    uv = blockUVs[b_type];
+                    uv = blockUVs[0];
+                }
+                else if(b_type < blockUVs.Length)
+                {
+                    uv = blockUVs[blockUVs.Length - 1];
                 }
 
                 #region UV
@@ -143,96 +149,40 @@ public class SmallWorldTerrain : MonoBehaviour
                 uvs[vertices_count + 19] = new Vector2(uv.x, uv.y + uv.w);
                 #endregion
 
-                #region Verts
-                Vector3 v0 = new Vector3(x - 0.5F, y + 0.5F, z - 0.5F);
-                Vector3 v1 = new Vector3(x - 0.5F, y + 0.5F, z + 0.5F);
-                Vector3 v2 = new Vector3(x + 0.5F, y + 0.5F, z + 0.5F);
-                Vector3 v3 = new Vector3(x + 0.5F, y + 0.5F, z - 0.5F);
-                Vector3 v4 = new Vector3(x + 0.5F, y - 0.5F, z + 0.5F);
-                Vector3 v5 = new Vector3(x + 0.5F, y - 0.5F, z - 0.5F);
-                Vector3 v6 = new Vector3(x - 0.5F, y - 0.5F, z + 0.5F);
-                Vector3 v7 = new Vector3(x - 0.5F, y - 0.5F, z - 0.5F);
+                #region Normals
+                Vector3 normal0 = Vector3.Cross(v1 - v2, v3 - v2);
 
-                vertices[vertices_count] = v0;
-                vertices[vertices_count + 1] = v1;
-                vertices[vertices_count + 2] = v2;
+                normals[vertices_count + 0] = normal0;
+                normals[vertices_count + 1] = normal0;
+                normals[vertices_count + 2] = normal0;
+
+                normals[vertices_count + 3] = normal0;
+                normals[vertices_count + 4] = normal0;
+                normals[vertices_count + 5] = normal0;
+                #endregion
+
+                #region Verts
+                vertices[vertices_count + 5] = v0;
+                vertices[vertices_count + 4] = v1;
                 vertices[vertices_count + 3] = v3;
 
-                vertices[vertices_count + 4] = v4;
-                vertices[vertices_count + 5] = v2;
-                vertices[vertices_count + 6] = v3;
-                vertices[vertices_count + 7] = v5;
-
-                vertices[vertices_count + 8] = v6;
-                vertices[vertices_count + 9] = v1;
-                vertices[vertices_count + 10] = v0;
-                vertices[vertices_count + 11] = v7;
-
-                vertices[vertices_count + 12] = v6;
-                vertices[vertices_count + 13] = v1;
-                vertices[vertices_count + 14] = v2;
-                vertices[vertices_count + 15] = v4;
-
-                vertices[vertices_count + 16] = v7;
-                vertices[vertices_count + 17] = v0;
-                vertices[vertices_count + 18] = v3;
-                vertices[vertices_count + 19] = v5;
+                vertices[vertices_count + 2] = v1;
+                vertices[vertices_count + 1] = v2;
+                vertices[vertices_count + 0] = v3;
                 #endregion
 
                 #region Tris
-                #region up
                 triangles[triangles_count + 0] = vertices_count;
                 triangles[triangles_count + 1] = vertices_count + 1;
                 triangles[triangles_count + 2] = vertices_count + 2;
 
-                triangles[triangles_count + 3] = vertices_count;
-                triangles[triangles_count + 4] = vertices_count + 2;
-                triangles[triangles_count + 5] = vertices_count + 3;
+                triangles[triangles_count + 3] = vertices_count + 3;
+                triangles[triangles_count + 4] = vertices_count + 4;
+                triangles[triangles_count + 5] = vertices_count + 5;
                 #endregion
 
-                #region left
-                triangles[triangles_count + 6] = vertices_count + 8;
-                triangles[triangles_count + 7] = vertices_count + 9;
-                triangles[triangles_count + 8] = vertices_count + 10;
-
-                triangles[triangles_count + 9] = vertices_count + 8;
-                triangles[triangles_count + 10] = vertices_count + 10;
-                triangles[triangles_count + 11] = vertices_count + 11;
-                #endregion
-
-                #region front
-                triangles[triangles_count + 12] = vertices_count + 15;
-                triangles[triangles_count + 13] = vertices_count + 14;
-                triangles[triangles_count + 14] = vertices_count + 13;
-
-                triangles[triangles_count + 15] = vertices_count + 15;
-                triangles[triangles_count + 16] = vertices_count + 13;
-                triangles[triangles_count + 17] = vertices_count + 12;
-                #endregion
-
-                #region right
-                triangles[triangles_count + 18] = vertices_count + 7;
-                triangles[triangles_count + 19] = vertices_count + 6;
-                triangles[triangles_count + 20] = vertices_count + 5;
-
-                triangles[triangles_count + 21] = vertices_count + 7;
-                triangles[triangles_count + 22] = vertices_count + 5;
-                triangles[triangles_count + 23] = vertices_count + 4;
-                #endregion
-
-                #region back
-                triangles[triangles_count + 24] = vertices_count + 16;
-                triangles[triangles_count + 25] = vertices_count + 17;
-                triangles[triangles_count + 26] = vertices_count + 18;
-
-                triangles[triangles_count + 27] = vertices_count + 16;
-                triangles[triangles_count + 28] = vertices_count + 18;
-                triangles[triangles_count + 29] = vertices_count + 19;
-                #endregion
-                #endregion
-
-                vertices_count += 20;
-                triangles_count += 30;
+                vertices_count += 6;
+                triangles_count += 6;
 
                 childIndex++;
             }

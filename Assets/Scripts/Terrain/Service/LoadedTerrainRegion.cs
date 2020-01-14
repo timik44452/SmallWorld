@@ -61,7 +61,7 @@ namespace Game.Terrain.Service
 
             if (lastUsedTerrain != null && lastUsedTerrain.X == x && lastUsedTerrain.Z == z)
             {
-                terrainRegion = lastUsedTerrain;
+                return lastUsedTerrain;
             }
             else
             {
@@ -101,10 +101,15 @@ namespace Game.Terrain.Service
             {
                 for (int local_z = 0; local_z < region_size; local_z++)
                 {
-                    float perlin_x = Mathf.Round(x + local_x) * 0.065F;
-                    float perlin_z = Mathf.Round(z + local_z) * 0.065F;
+                    float perlin_x = Mathf.Round(x + local_x);
+                    float perlin_z = Mathf.Round(z + local_z);
 
-                    float height = Mathf.PerlinNoise(perlin_x, perlin_z) * 8.0F;
+                    float size = 0.06F;
+                    float terrain_height = 5F;
+
+                    float mount = Mathf.Clamp01(Mathf.PerlinNoise(perlin_x * size * 0.5F, perlin_z * size * 0.5F) - 0.7F) * terrain_height * 16;
+
+                    float height = Mathf.Max(mount, Mathf.PerlinNoise(perlin_x * size, perlin_z * size) * terrain_height);
 
                     region.SetHeight(local_x, local_z, height);
                 }
