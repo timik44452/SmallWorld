@@ -104,7 +104,7 @@ namespace Game.Terrain.Service
                     float perlin_x = Mathf.Round(x + local_x);
                     float perlin_z = Mathf.Round(z + local_z);
 
-                    float size = 0.06F;
+                    float size = 0.1F;
                     float terrain_height = 5F;
 
                     float mount = Mathf.Clamp01(Mathf.PerlinNoise(perlin_x * size * 0.5F, perlin_z * size * 0.5F) - 0.7F) * terrain_height * 16;
