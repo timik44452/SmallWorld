@@ -13,7 +13,7 @@ public class FollowCamera : MonoBehaviour
         if (target)
         {
             transform.position = Vector3.Lerp(transform.position, target.position + offset, speed * Time.deltaTime);
-            transform.rotation = Quaternion.LookRotation(target.position - transform.position);
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(target.position - transform.position), speed * Time.deltaTime);
         }
     }
 }

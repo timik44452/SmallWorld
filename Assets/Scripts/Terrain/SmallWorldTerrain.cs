@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class SmallWorldTerrain : MonoBehaviour
 {
-    public Material material;
+    public Material terrain_material;
+    public GameObject grass;
     public SmallWorldTerrainSettings terrainSettings;
 
     #region UV data
@@ -42,9 +43,9 @@ public class SmallWorldTerrain : MonoBehaviour
 
         Texture2D unwrap = new Texture2D(128, 128);
 
-        if (material != null)
+        if (terrain_material != null)
         {
-            material.SetTexture("_BaseMap", unwrap);
+            terrain_material.SetTexture("_BaseMap", unwrap);
         }
 
         AddSubTexture(0, 0, terrainSettings.rockTexture, unwrap);
@@ -91,7 +92,7 @@ public class SmallWorldTerrain : MonoBehaviour
 
         CheckChunkComponents(chunk);
 
-        chunk.GetComponent<Chunk>().InitializeChunk(region, uvmap);
+        chunk.GetComponent<Chunk>().InitializeChunk(grass, region, uvmap);
     }
 
     private void CheckChunkComponents(GameObject gameObject)
@@ -108,6 +109,6 @@ public class SmallWorldTerrain : MonoBehaviour
         if (!gameObject.GetComponent<MeshCollider>())
             gameObject.AddComponent<MeshCollider>();
 
-        gameObject.GetComponent<MeshRenderer>().material = material;
+        gameObject.GetComponent<MeshRenderer>().material = terrain_material;
     }
 }

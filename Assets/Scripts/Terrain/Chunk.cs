@@ -20,9 +20,13 @@ public class Chunk : MonoBehaviour
     private Vector3[,] points = new Vector3[0, 0];
     #endregion
 
-    public void InitializeChunk(Region region, UVMap uvmap)
+    private GameObject grass_prefab;
+
+    public void InitializeChunk(GameObject grass, Region region, UVMap uvmap)
     {
         this.uvmap = uvmap;
+
+        grass_prefab = grass;
 
         InitializeLoader();
         UpdateChunk(region);
@@ -30,7 +34,7 @@ public class Chunk : MonoBehaviour
 
     private void InitializeLoader()
     {
-        if(mesh == null)
+        if (mesh == null)
         {
             mesh = new Mesh();
 
@@ -58,8 +62,8 @@ public class Chunk : MonoBehaviour
             {
                 loadedTerrain.GetBlockData(region.X + x, region.Z + z, out float height, out int type);
 
-                float dx = Mathf.Sin(height * Mathf.PI * 2);
-                float dz = Mathf.Cos(height * Mathf.PI * 2);
+                float dx = 1.25F * Mathf.Sin(height * Mathf.PI * 2);
+                float dz = 1.25F * Mathf.Cos(height * Mathf.PI * 2);
 
                 types[x, z] = type;
                 points[x, z] = new Vector3(x + dx, height / 2, z + dz);
@@ -68,6 +72,13 @@ public class Chunk : MonoBehaviour
         loadedWorldObjects.UpdateRegion(region);
 
         CreatePolyMesh(region);
+    }
+
+    private void CreateGrass(Vector3 position, Vector3 direction, Vector3 scale)
+    {
+        var grass_object = Instantiate(grass_prefab, transform.position + position, Quaternion.LookRotation(Vector3.up), transform);
+
+        grass_object.transform.localScale = scale;
     }
 
     private void CreatePolyMesh(Region region)
@@ -94,6 +105,27 @@ public class Chunk : MonoBehaviour
                 Vector3 v1 = points[x + 1, z + 1];
                 Vector3 v0 = points[x + 1, z];
 
+                Vector3 normal = Vector3.Cross(v1 - v2, v3 - v2);
+
+
+                //if (types[x, z] == 2)
+                //{
+                //    for (int i = 0; i < 2;i ++)
+                //    {
+                //        Vector3 center = (v0 + v1 + v2 + v3) * 0.25F;
+
+                //        Vector3 a = Vector3.Lerp(center, v0, Random.value);
+                //        Vector3 b = Vector3.Lerp(center, v1, Random.value);
+                //        Vector3 c = Vector3.Lerp(center, v2, Random.value);
+                //        Vector3 d = Vector3.Lerp(center, v3, Random.value);
+
+                //        CreateGrass(a, normal, new Vector3(1, 0.5F, 1));
+                //        CreateGrass(b, normal, new Vector3(1, 0.5F, 1));
+                //        CreateGrass(c, normal, new Vector3(1, 0.5F, 1));
+                //        CreateGrass(d, normal, new Vector3(1, 0.5F, 1));
+                //    }
+                //}
+
                 UVData uv = uvmap.GetUV(types[x, z]);
 
                 #region UV
@@ -107,15 +139,13 @@ public class Chunk : MonoBehaviour
                 #endregion
 
                 #region Normals
-                Vector3 normal0 = Vector3.Cross(v1 - v2, v3 - v2);
+                normals[vertices_count + 0] = normal;
+                normals[vertices_count + 1] = normal;
+                normals[vertices_count + 2] = normal;
 
-                normals[vertices_count + 0] = normal0;
-                normals[vertices_count + 1] = normal0;
-                normals[vertices_count + 2] = normal0;
-
-                normals[vertices_count + 3] = normal0;
-                normals[vertices_count + 4] = normal0;
-                normals[vertices_count + 5] = normal0;
+                normals[vertices_count + 3] = normal;
+                normals[vertices_count + 4] = normal;
+                normals[vertices_count + 5] = normal;
                 #endregion
 
                 #region Verts
@@ -154,7 +184,9 @@ public class Chunk : MonoBehaviour
 
         //TODO: Fix it
         if (gameObject.GetComponent<MeshCollider>())
+        {
             Destroy(gameObject.GetComponent<MeshCollider>());
+        }
 
         gameObject.AddComponent<MeshCollider>();
     }

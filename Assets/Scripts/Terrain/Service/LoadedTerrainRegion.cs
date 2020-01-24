@@ -112,7 +112,7 @@ namespace Game.Terrain.Service
 
                     float height = Mathf.Max(mount, Mathf.PerlinNoise(perlin_x * size, perlin_z * size) * terrain_height);
 
-                    int b_type = (int)(6 - Mathf.PerlinNoise(region.X + x, region.Z + z) * 2);
+                    int b_type = (int)(5 - height);
 
                     region.SetBlockType(local_x, local_z, b_type);
                     region.SetHeight(local_x, local_z, height);

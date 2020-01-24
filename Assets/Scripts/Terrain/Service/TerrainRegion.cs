@@ -81,7 +81,7 @@ namespace Game.Terrain.Service
         {
             if (x >= 0 && x < Width && y >= 0 && y < Length)
             {
-                heights[x + y * Width] = (byte)type;
+                types[x + y * Width] = (byte)type;
             }
         }
 
