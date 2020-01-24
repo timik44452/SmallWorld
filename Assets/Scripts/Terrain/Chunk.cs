@@ -5,8 +5,11 @@ using UnityEngine;
 public class Chunk : MonoBehaviour
 {
     #region Loaded data
+    private Mesh mesh;
     private LoadedTerrainRegion loadedTerrain;
     private LoadedWorldObjects loadedWorldObjects;
+
+    private int[,] types;
     #endregion
 
     #region UV data
@@ -27,6 +30,14 @@ public class Chunk : MonoBehaviour
 
     private void InitializeLoader()
     {
+        if(mesh == null)
+        {
+            mesh = new Mesh();
+
+            gameObject.GetComponent<MeshFilter>().mesh = mesh;
+            gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
+        }
+
         loadedTerrain = new LoadedTerrainRegion();
         loadedWorldObjects = new LoadedWorldObjects();
     }
@@ -38,26 +49,28 @@ public class Chunk : MonoBehaviour
 
         if (points.GetLength(0) < region.Width || points.GetLength(1) < region.Length)
         {
+            types = new int[region_width, region_length];
             points = new Vector3[region_width, region_length];
         }
 
         for (int x = 0; x < region_width; x++)
             for (int z = 0; z < region_length; z++)
             {
-                float height = loadedTerrain.GetHeight(region.X + x, region.Z + z);
+                loadedTerrain.GetBlockData(region.X + x, region.Z + z, out float height, out int type);
 
                 float dx = Mathf.Sin(height * Mathf.PI * 2);
                 float dz = Mathf.Cos(height * Mathf.PI * 2);
 
+                types[x, z] = type;
                 points[x, z] = new Vector3(x + dx, height / 2, z + dz);
             }
 
         loadedWorldObjects.UpdateRegion(region);
 
-        CreatePolyMesh(region, gameObject);
+        CreatePolyMesh(region);
     }
 
-    private void CreatePolyMesh(Region region, GameObject chunkGameObject)
+    private void CreatePolyMesh(Region region)
     {
         int childIndex = 0;
         int vertices_count = 0;
@@ -76,14 +89,12 @@ public class Chunk : MonoBehaviour
         {
             for (int z = 0; z < region.Length; z++)
             {
-                int b_type = (int)(6 - loadedTerrain.GetHeight(region.X + x, region.Z + z) * 2);
-
                 Vector3 v3 = points[x, z];
                 Vector3 v2 = points[x, z + 1];
                 Vector3 v1 = points[x + 1, z + 1];
                 Vector3 v0 = points[x + 1, z];
 
-                UVData uv = uvmap.GetUV(b_type);
+                UVData uv = uvmap.GetUV(types[x, z]);
 
                 #region UV
                 uvs[vertices_count] = new Vector2(uv.x, uv.y);
@@ -134,18 +145,17 @@ public class Chunk : MonoBehaviour
             }
         }
 
-        Mesh mesh = chunkGameObject.GetComponent<MeshFilter>().mesh;
-
-        if (mesh == null)
-        {
-            mesh = new Mesh();
-        }
-
         mesh.Clear();
 
         mesh.SetVertices(vertices, 0, vertices_count);
         mesh.SetNormals(normals, 0, vertices_count);
         mesh.SetUVs(0, uvs, 0, vertices_count);
         mesh.SetTriangles(triangles, 0, triangles_count, 0);
+
+        //TODO: Fix it
+        if (gameObject.GetComponent<MeshCollider>())
+            Destroy(gameObject.GetComponent<MeshCollider>());
+
+        gameObject.AddComponent<MeshCollider>();
     }
 }

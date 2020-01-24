@@ -105,6 +105,9 @@ public class SmallWorldTerrain : MonoBehaviour
         if (!gameObject.GetComponent<Chunk>())
             gameObject.AddComponent<Chunk>();
 
+        if (!gameObject.GetComponent<MeshCollider>())
+            gameObject.AddComponent<MeshCollider>();
+
         gameObject.GetComponent<MeshRenderer>().material = material;
     }
 }

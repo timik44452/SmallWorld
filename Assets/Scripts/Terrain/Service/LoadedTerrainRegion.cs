@@ -20,7 +20,7 @@ namespace Game.Terrain.Service
             CreateDirectionIfNotCreated();
         }
 
-        public float GetHeight(float x, float z)
+        public void GetBlockData(float x, float z, out float height, out int type)
         {
             int region_x = (int)(x / region_size);
             int region_z = (int)(z / region_size);
@@ -42,7 +42,8 @@ namespace Game.Terrain.Service
 
             var region = LoadIfNotLoaded(region_x, region_z);
 
-            return region.GetHeight(region_local_x, region_local_z);
+            height = region.GetHeight(region_local_x, region_local_z);
+            type = region.GetType(region_local_x, region_local_z);
         }
 
         private void CreateDirectionIfNotCreated()
@@ -111,6 +112,9 @@ namespace Game.Terrain.Service
 
                     float height = Mathf.Max(mount, Mathf.PerlinNoise(perlin_x * size, perlin_z * size) * terrain_height);
 
+                    int b_type = (int)(6 - Mathf.PerlinNoise(region.X + x, region.Z + z) * 2);
+
+                    region.SetBlockType(local_x, local_z, b_type);
                     region.SetHeight(local_x, local_z, height);
                 }
             }

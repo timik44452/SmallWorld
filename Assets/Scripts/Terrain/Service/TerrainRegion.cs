@@ -10,6 +10,7 @@ namespace Game.Terrain.Service
         public int Length { get; }
 
         private byte[] heights;
+        private byte[] types;
 
         public TerrainRegion(int X, int Z, int Width, int Length)
         {
@@ -18,7 +19,8 @@ namespace Game.Terrain.Service
             this.Width = Width;
             this.Length = Length;
 
-            heights = new byte[Width* Length];
+            heights = new byte[Width * Length];
+            types = new byte[Width * Length];
         }
 
         public TerrainRegion(string path)
@@ -31,14 +33,16 @@ namespace Game.Terrain.Service
 
             using (Stream reader = new StreamReader(path).BaseStream)
             {
-                int size = (int)System.Math.Sqrt(reader.Length);
+                int size = (int)System.Math.Sqrt(reader.Length * 0.5F);
 
                 Width = size;
                 Length = size;
 
-                heights = new byte[reader.Length];
+                types = new byte[size * size];
+                heights = new byte[size * size];
 
                 reader.Read(heights, 0, heights.Length);
+                reader.Read(types, 0, types.Length);
             }
 
             X = x;
@@ -55,6 +59,16 @@ namespace Game.Terrain.Service
             return 0;
         }
 
+        public int GetType(int x, int y)
+        {
+            if (x >= 0 && x < Width && y >= 0 && y < Length)
+            {
+                return types[x + y * Width];
+            }
+
+            return 0;
+        }
+
         public void SetHeight(int x, int y, float height)
         {
             if (x >= 0 && x < Width && y >= 0 && y < Length)
@@ -63,11 +77,20 @@ namespace Game.Terrain.Service
             }
         }
 
+        public void SetBlockType(int x, int y, int type)
+        {
+            if (x >= 0 && x < Width && y >= 0 && y < Length)
+            {
+                heights[x + y * Width] = (byte)type;
+            }
+        }
+
         public void Save(string path)
         {
             using (Stream writer = new StreamWriter(path).BaseStream)
             {
                 writer.Write(heights, 0, heights.Length);
+                writer.Write(types, 0, types.Length);
             }
         }
     }
